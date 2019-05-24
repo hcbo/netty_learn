@@ -1,0 +1,67 @@
+package com.hcb.netty.third_broadcast;
+
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
+import io.netty.util.concurrent.GlobalEventExecutor;
+
+public class MyChatServerHandler extends SimpleChannelInboundHandler<String> {
+
+    private static ChannelGroup channelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+
+    // 服务器端收到任意一个客户端的消息，就会调用此方法
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
+        Channel channel = ctx.channel();
+
+        channelGroup.forEach(ch ->{
+            if (channel != ch){  // 对channelgroup中每一个channel与发送消息的channel做判断
+                ch.writeAndFlush(channel.remoteAddress() + " 发送的消息：" + msg + "\n");
+            } else {
+                ch.writeAndFlush("【自己】" + msg + "\n");
+            }
+        });
+    }
+
+    // 表示服务器端与客户端建立了连接
+    @Override
+    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+        Channel channel = ctx.channel();
+        // 将消息写入到channelgroup中所有的channel
+        channelGroup.writeAndFlush("【服务器】- " + channel.remoteAddress() + " 加入\n");
+
+        // 把每个channel放到channelgroup中
+        channelGroup.add(channel);
+    }
+
+    // Netty会自动把已经断掉的连接从channelgroup中移除，因为创建channelgroup时使用的是 GlobalEventExecutor ,意思是global全局的.
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        Channel channel = ctx.channel();
+        // 已断掉的连接不会收到这个方法写入的消息，代码中无须手工调用 channelGroup.remove(channel)
+        channelGroup.writeAndFlush("【服务器】- " + channel.remoteAddress() + " 离开\n");
+        // 验证  在 Handler被remove的时候没有必要调用 channelGroup的remove方法，
+        // 打印的结果表明 channelgroup中handler被remove的channel自动被remove掉了
+        System.out.println(channelGroup.size());
+    }
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        Channel channel = ctx.channel();
+        System.out.println(channel.remoteAddress() + " 上线");
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        Channel channel = ctx.channel();
+        System.out.println(channel.remoteAddress() + " 下线");
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        cause.printStackTrace();
+        ctx.close();
+    }
+}
