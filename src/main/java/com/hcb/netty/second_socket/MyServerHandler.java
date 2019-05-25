@@ -1,4 +1,4 @@
-package com.hcb.netty.second;
+package com.hcb.netty.second_socket;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;

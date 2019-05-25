@@ -1,15 +1,19 @@
-package com.hcb.netty.third_broadcast;
+package com.hcb.netty.fifth_webSocket;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
+
+import java.net.InetSocketAddress;
 
 /**
- * 这个聊天程序是基于socket编程实现的,不是基于http的,http是实现不了的,因为需要server端向client端推数据.
+ * 基于websocket的
  */
-public class MyChatServer {
+public class MyServer {
     public static void main(String[] args) throws Exception {
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workGroup = new NioEventLoopGroup();
@@ -18,8 +22,9 @@ public class MyChatServer {
             ServerBootstrap serverBootstrap = new ServerBootstrap();
             serverBootstrap.group(bossGroup, workGroup)
                     .channel(NioServerSocketChannel.class)
-                    .childHandler(new MyChatServerInitializer());
-            ChannelFuture channelFuture = serverBootstrap.bind(8899).sync();
+                    .handler(new LoggingHandler(LogLevel.INFO))  // handler方法是对 bossGroup 施加作用
+                    .childHandler(new WebSocketChannelInitializer());   // childHandler方法是对 workGroup 施加作用的
+            ChannelFuture channelFuture = serverBootstrap.bind(new InetSocketAddress(8899)).sync();
             channelFuture.channel().closeFuture().sync();
         } finally {
             bossGroup.shutdownGracefully();

@@ -1,6 +1,5 @@
-package com.hcb.netty.second;
+package com.hcb.netty.second_socket;
 
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
