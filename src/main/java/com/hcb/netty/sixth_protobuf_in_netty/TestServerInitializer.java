@@ -1,5 +1,6 @@
 package com.hcb.netty.sixth_protobuf_in_netty;
 
+import com.hcb.protobuf.DataInfo;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
